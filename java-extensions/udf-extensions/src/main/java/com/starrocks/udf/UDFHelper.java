@@ -343,13 +343,7 @@ public class UDFHelper {
                 break;
             }
             case TYPE_DATE:{
-                if (boxedResult instanceof Date[]) {
-                    getStringDateResult(numRows, (Date[]) boxedResult, columnAddr);
-                } else if(boxedResult instanceof String[]){
-                    getStringBoxedResult(numRows, (String[]) boxedResult, columnAddr);
-                }else {
-                    throw new UnsupportedOperationException("unsupported type:" + boxedResult);
-                }
+                getStringDateResult(numRows, (Date[]) boxedResult, columnAddr);
                 break;
             }
             default:
