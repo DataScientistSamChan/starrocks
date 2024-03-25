@@ -215,11 +215,11 @@ under the License.
                 <version>2.3</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/com.github.seancfoley/ipaddress -->
+            <!-- https://mvnrepository.com/artifact/commons-net/commons-net -->
             <dependency>
-                <groupId>com.github.seancfoley</groupId>
-                <artifactId>ipaddress</artifactId>
-                <version>5.4.2</version>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>3.9.0</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
@@ -295,7 +295,7 @@ under the License.
             <dependency>
                 <groupId>com.starrocks</groupId>
                 <artifactId>starrocks-bdb-je</artifactId>
-                <version>18.3.17</version>
+                <version>18.3.16</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/de.jflex/jflex -->
@@ -723,14 +723,6 @@ under the License.
                 <groupId>com.clickhouse</groupId>
                 <artifactId>clickhouse-jdbc</artifactId>
                 <version>0.4.6</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/org.lz4/lz4-java -->
-            <!-- we need lz4 because clickhouse return data compressed in lz4. -->
-            <dependency>
-                <groupId>org.lz4</groupId>
-                <artifactId>lz4-java</artifactId>
-                <version>1.8.0</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/com.mockrunner/mockrunner-jdbc -->
