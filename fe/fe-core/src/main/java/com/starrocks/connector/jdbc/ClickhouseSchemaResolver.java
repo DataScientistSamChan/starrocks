@@ -43,6 +43,7 @@ import java.util.Set;
 public class ClickhouseSchemaResolver extends JDBCSchemaResolver {
     Map<String, String> properties;
 
+
     public static final String KEY_FOR_TABLE_NAME_FOR_PARTITION_INFO = "table_name_for_partition_info";
     public static final String KEY_FOR_TABLE_NAME_FOR_TABLE_INFO = "table_name_for_table_info";
     private static final String DEFAULT_TABLE_NAME_FOR_PARTITION_INFO = "system.parts";
@@ -74,7 +75,6 @@ public class ClickhouseSchemaResolver extends JDBCSchemaResolver {
         }
     }
 
-
     @Override
     public ResultSet getTables(Connection connection, String dbName) throws SQLException {
         String tableTypes = properties.get("table_types");
@@ -92,15 +92,10 @@ public class ClickhouseSchemaResolver extends JDBCSchemaResolver {
                             ",Currently supported table types includes:" + String.join(",", SUPPORTED_TABLE_TYPES));
                 }
             }
-            return connection.getMetaData().getTables(connection.getCatalog(), dbName, null, tableTypesArray);
+            return connection.getMetaData().getTables(dbName, null, null, tableTypesArray);
         }
-        return connection.getMetaData().getTables(connection.getCatalog(), dbName, null, new String[] {"TABLE", "VIEW"});
+        return connection.getMetaData().getTables(dbName, null, null, new String[] {"TABLE", "VIEW"});
 
-    }
-
-    @Override
-    public ResultSet getColumns(Connection connection, String dbName, String tblName) throws SQLException {
-        return connection.getMetaData().getColumns(connection.getCatalog(), dbName, tblName, "%");
     }
 
     @Override
@@ -368,20 +363,19 @@ public class ClickhouseSchemaResolver extends JDBCSchemaResolver {
      */
     @NotNull
     private String getPartitionQuery(Table table) {
-        if (table.isPartitioned()) {
+        if(table.isPartitioned()){
             String tableNameForPartInfo = getTableNameForPartInfo();
             final String partitionQuery =
                     "SELECT  partition AS NAME, max(modification_time) AS MODIFIED_TIME FROM " + tableNameForPartInfo +
-                            " WHERE database = ? " + "AND table = ? AND name IS NOT NULL" +
-                            " GROUP BY partition ORDER BY partition";
+                    " WHERE database = ? " + "AND table = ? AND name IS NOT NULL" +
+                    " GROUP BY partition ORDER BY partition";
             return partitionQuery;
-        } else {
+        }else{
             String tableNameForTableInfo = getTableNameForTableInfo();
             final String nonPartitionQuery =
-                    " SELECT  name AS NAME, max(metadata_modification_time) AS MODIFIED_TIME FROM " +
-                            tableNameForTableInfo +
-                            " WHERE database = ? AND name = ? AND name IS NOT NULL GROUP BY name";
-            return nonPartitionQuery;
+                " SELECT  name AS NAME, max(metadata_modification_time) AS MODIFIED_TIME FROM " + tableNameForTableInfo +
+                " WHERE database = ? AND name = ? AND name IS NOT NULL GROUP BY name";
+                return nonPartitionQuery;
         }
     }
 
