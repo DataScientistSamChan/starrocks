@@ -31,7 +31,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,9 +62,7 @@ public class JDBCScanner {
         String key = scanContext.getUser() + "/" + scanContext.getJdbcURL();
         URL driverURL = new File(driverLocation).toURI().toURL();
         DataSourceCache.DataSourceCacheItem cacheItem = DataSourceCache.getInstance().getSource(key, () -> {
-            ClassLoader classLoader = URLClassLoader.newInstance(new URL[] {
-                    driverURL,
-            });
+            ClassLoader classLoader = URLClassLoader.newInstance(new URL[] {driverURL});
             Thread.currentThread().setContextClassLoader(classLoader);
             HikariConfig config = new HikariConfig();
             config.setDriverClassName(scanContext.getDriverClassName());
@@ -112,40 +109,26 @@ public class JDBCScanner {
         }
     }
 
-    private static final Set<Class<?>> GENERAL_JDBC_CLASS_SET = new HashSet<>(Arrays.asList(
-            Boolean.class,
-            Short.class,
-            Integer.class,
-            Long.class,
-            Float.class,
-            Double.class,
-            BigInteger.class,
-            BigDecimal.class,
-            java.sql.Date.class,
-            Timestamp.class,
-            LocalDate.class,
-            LocalDateTime.class,
-            Time.class,
-            String.class
-    ));
+    private static final Set<Class<?>> GENERAL_JDBC_CLASS_SET = new HashSet<>(
+            Arrays.asList(Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+                    BigInteger.class, BigDecimal.class, java.sql.Date.class, Timestamp.class, LocalDate.class,
+                    LocalDateTime.class, Time.class, String.class));
 
     private boolean isGeneralJDBCClassType(Class<?> clazz) {
         return GENERAL_JDBC_CLASS_SET.contains(clazz);
     }
 
-    private static final Map<String, Class> ENGINE_SPECIFIC_CLASS_MAPPING = new HashMap<String, Class>(){{
-        put("com.clickhouse.data.value.UnsignedByte", Short.class);
-        put("com.clickhouse.data.value.UnsignedShort", Integer.class);
-        put("com.clickhouse.data.value.UnsignedInteger", Long.class);
-        put("com.clickhouse.data.value.UnsignedLong", BigInteger.class);
-    }};
-
+    private static final Map<String, Class> ENGINE_SPECIFIC_CLASS_MAPPING = new HashMap<String, Class>() {{
+            put("com.clickhouse.data.value.UnsignedByte", Short.class);
+            put("com.clickhouse.data.value.UnsignedShort", Integer.class);
+            put("com.clickhouse.data.value.UnsignedInteger", Long.class);
+            put("com.clickhouse.data.value.UnsignedLong", BigInteger.class);
+        }};
 
     private Class mapEngineSpecificClassType(Class<?> clazz) {
         String className = clazz.getName();
         return ENGINE_SPECIFIC_CLASS_MAPPING.get(className);
     }
-
 
     // used for cpp interface
     public List<String> getResultColumnClassNames() {
@@ -178,23 +161,23 @@ public class JDBCScanner {
                     dataColumn[resultNumRows] = ((Number) resultObject).intValue();
                 } else if (dataColumn instanceof Long[]) {
                     dataColumn[resultNumRows] = ((Number) resultObject).longValue();
+                } else if (dataColumn instanceof BigInteger[]) {
+                    dataColumn[resultNumRows] = ((Number) resultObject).longValue();
                 } else if (dataColumn instanceof Float[]) {
                     dataColumn[resultNumRows] = ((Number) resultObject).floatValue();
                 } else if (dataColumn instanceof Double[]) {
                     dataColumn[resultNumRows] = ((Number) resultObject).doubleValue();
                 } else if (dataColumn instanceof String[] && resultObject instanceof String) {
-                    System.out.println(1);
-                    System.out.println(resultObject);
                     // if both sides are String, assign value directly to avoid additional calls to getString
                     dataColumn[resultNumRows] = resultObject;
                 } else if (!(dataColumn instanceof String[])) {
-                    System.out.println(2);
-                    // for other general class type, assign value directly
-                    System.out.println(resultObject);
-                    dataColumn[resultNumRows] = resultObject;
+                    if (dataColumn instanceof BigInteger[] && resultObject instanceof Number) {
+                        dataColumn[resultNumRows] = new BigInteger(resultObject.toString());
+                    } else {
+                        // for other general class type, assign value directly
+                        dataColumn[resultNumRows] = resultObject;
+                    }
                 } else {
-                    System.out.println(3);
-                    System.out.println(resultSet.getString(i + 1));
                     // for non-general class type, use string representation
                     dataColumn[resultNumRows] = resultSet.getString(i + 1);
                 }
